@@ -2,20 +2,20 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="format-detection" content="telephone=no">
 <title>Tamma-Tahfidh Juz Amma</title>
 <meta name="theme-color" content="#0c4a2a">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<!-- Gunakan versi spesifik agar konsisten dengan cache -->
-<!-- FA replaced with inline SVG -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<!-- URL Chart.js disamakan dengan yang di-cache -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- External libs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" crossorigin="anonymous" onerror="console.warn('[XLSX] Gagal load dari CDN')"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" crossorigin="anonymous" onerror="console.warn('[ChartJS] Gagal load dari CDN')"></script>
 <!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" crossorigin="anonymous" onerror="console.warn('[Firebase] Gagal load app')"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" crossorigin="anonymous" onerror="console.warn('[Firebase] Gagal load firestore')"></script>
 <style>
 /* ==============================
    RESET & BASE (CRITICAL FIXES)
@@ -278,11 +278,11 @@ body {
   bottom: calc(var(--NAV) + env(safe-area-inset-bottom, 0px));
   left: 0;
   right: 0;
-  overflow: clip;
+  overflow: hidden;
   background: var(--bg);
   height: auto;
-  /* Cegah pull-to-refresh Android bentrok dengan swipe horizontal */
-  touch-action: pan-y;
+  /* Izinkan swipe horizontal untuk navigasi tab */
+  touch-action: pan-y pinch-zoom;
   /* Cegah text selection saat swipe di PC */
   user-select: none;
   -webkit-user-select: none;
@@ -3286,8 +3286,13 @@ const BOOTSTRAP_ADMIN_EMAIL = null; // set ke email admin jika perlu
 firebase.initializeApp(firebaseConfig);
 const fbDb = firebase.firestore();
 
-// Enable offline persistence
-fbDb.enablePersistence({ synchronizeTabs: true }).catch(err => {
+// Deteksi apakah berjalan di WebView/APK
+const isWebView = /wv|WebView/.test(navigator.userAgent) || 
+  (window.Android !== undefined) ||
+  (/Android/.test(navigator.userAgent) && !/Chrome\/[.0-9]* Mobile/.test(navigator.userAgent));
+
+// Enable offline persistence — di WebView jangan pakai synchronizeTabs
+fbDb.enablePersistence({ synchronizeTabs: !isWebView }).catch(err => {
   if(err.code === 'failed-precondition') console.warn('[FB] Multiple tabs open');
   else if(err.code === 'unimplemented') console.warn('[FB] Browser tidak support persistence');
 });
@@ -3597,21 +3602,12 @@ async function buatKodeUndangan(){
    CDN libs (XLSX, Chart) di-cache via SW.
    HTML page juga di-cache via SW (cache-first).
 ============================== */
-// ⚠️ SERVICE WORKER DINONAKTIFKAN SEMENTARA UNTUK DEBUGGING
-// Unregister semua SW lama & hapus semua cache agar selalu ambil versi terbaru
-if ('serviceWorker' in navigator) {
+// ⚠️ SERVICE WORKER: dinonaktifkan di WebView/APK (tidak didukung)
+if ('serviceWorker' in navigator && !isWebView) {
   navigator.serviceWorker.getRegistrations().then(regs => {
-    regs.forEach(reg => {
-      reg.unregister();
-      console.log('[SW] Unregistered:', reg.scope);
-    });
+    regs.forEach(reg => { reg.unregister(); });
   });
-  caches.keys().then(keys => {
-    keys.forEach(k => {
-      caches.delete(k);
-      console.log('[Cache] Deleted:', k);
-    });
-  });
+  caches.keys().then(keys => { keys.forEach(k => caches.delete(k)); });
 }
 
 if (false && 'serviceWorker' in navigator) {
@@ -3857,22 +3853,20 @@ pgw.addEventListener('touchstart',e=>{
   _swipeDir=null;
 },{passive:true});
 pgw.addEventListener('touchmove',e=>{
-  if(_swipeDir) return;
   const dx=Math.abs(e.changedTouches[0].screenX-tx0);
   const dy=Math.abs(e.changedTouches[0].screenY-ty0);
-  // Butuh minimal 20px gerakan, dan horizontal harus jelas lebih dominan dari vertikal
-  if(dx > 20 || dy > 20){
-    _swipeDir = (dx > dy * 1.5) ? 'h' : 'v';
+  // Tentukan arah swipe lebih awal (10px) agar tidak terlewat di WebView
+  if(!_swipeDir && (dx > 10 || dy > 10)){
+    _swipeDir = (dx > dy * 1.2) ? 'h' : 'v';
   }
   // Lock scroll hanya saat swipe horizontal jelas
   if(_swipeDir==='h' && e.cancelable) e.preventDefault();
 },{passive:false});
 pgw.addEventListener('touchend',e=>{
-  if(window.innerWidth > 1024) return; // PC/desktop: navigasi pakai tombol nav, bukan swipe
   const dx=e.changedTouches[0].screenX-tx0;
   const dy=e.changedTouches[0].screenY-ty0;
-  // Minimal 80px horizontal, dan horizontal harus lebih dari 2x vertikal
-  if(_swipeDir!=='h' || Math.abs(dx) < 80 || Math.abs(dx) < Math.abs(dy)*2) return;
+  // Minimal 60px horizontal (lebih mudah di APK), dan horizontal harus lebih dari 1.5x vertikal
+  if(_swipeDir!=='h' || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy)*1.5) return;
   goPage(dx>0?Math.max(0,curPg-1):Math.min(5,curPg+1));
   _swipeDir=null;
 },{passive:true});
