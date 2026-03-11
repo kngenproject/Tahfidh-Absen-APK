@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+<title>Tamma - Tahfidh Juz Amma</title>
+<meta name="theme-color" content="#0c4a2a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+/* ==============================
+   RESET & VARIABLES (Tablet Optimized)
+============================== */
+:root {
+  --g9:#0c4a2a; --g8:#145c35; --g7:#1a7040;
+  --g6:#22884d; --g5:#2da55f; --g4:#4abf79;
+  --g1:#dcf5e7; --g0:#f0faf4;
+  --gold:#e6b830; --goldl:#f9e07a;
+  --bg:#eef2f0; --surf:#fff; --surf2:#f7faf8;
+  --txt:#1a2e22; --mut:#6b7c72; --brd:#dde8e2;
+  --red:#e53935; --yel:#f9a825; --blu:#1976d2; --tel:#00838f;
+  --r:16px; /* Sedikit lebih besar untuk tablet */
+  --rs:12px;
+  --sh:0 4px 12px rgba(12,74,42,.12);
+  --HDR:60px;
+  --NAV:68px;
+  --font-base: 15px; /* Base font lebih besar */
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+html,body { height:100%; overflow:hidden; font-size: var(--font-base); }
+body {
+  font-family:-apple-system,'Segoe UI',system-ui,sans-serif;
+  background:var(--bg); color:var(--txt);
+  overscroll-behavior:none;
+}
+
+/* Kontrol Font dipindahkan ke halaman Tentang, disembunyikan dari posisi global */
+.font-control {
+  display: none; /* Awalnya disembunyikan, akan ditampilkan di tab tentang dengan class khusus */
+}
+
+/* Header Tablet */
+.hdr { position:fixed; top:0; left:0; right:0; z-index:100; height:var(--HDR); background:linear-gradient(135deg,var(--g9),var(--g7)); display:flex; align-items:center; padding:0 18px; box-shadow:0 2px 12px rgba(0,0,0,.3); }
+.hdr-left { display:flex; align-items:center; gap:12px; flex:1; min-width:0; }
+.hdr-ico { width:40px; height:40px; border-radius:12px; flex-shrink:0; background:rgba(255,255,255,.15); display:flex; align-items:center; justify-content:center; font-size:1.2rem; }
+.hdr-title { font-size:1.1rem; font-weight:800; color:#fff; letter-spacing:.5px; line-height:1.2; }
+.hdr-sub { font-size:.7rem; color:rgba(255,255,255,.6); margin-top:2px; }
+.hdr-right { display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0; }
+.hdr-date { font-size:.7rem; color:rgba(255,255,255,.8); background:rgba(255,255,255,.12); padding:4px 12px; border-radius:30px; }
+#btnInstall { display:none; background:var(--gold); color:#2a1800; border:none; border-radius:30px; padding:5px 12px; font-size:.7rem; font-weight:700; cursor:pointer; }
+
+/* Bottom Nav Tablet */
+.bnav { position:fixed; bottom:0; left:0; right:0; z-index:100; height:var(--NAV); background:var(--g9); display:flex; box-shadow:0 -2px 15px rgba(0,0,0,.25); padding-bottom:env(safe-area-inset-bottom,0px); }
+.nb { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; background:none; border:none; cursor:pointer; color:rgba(255,255,255,.4); font-size:.65rem; font-weight:700; letter-spacing:.3px; transition:color .2s; position:relative; padding-bottom:5px; }
+.nb i { font-size:1.3rem; line-height:1; transition:transform .2s; display:block; }
+.nb.on { color:var(--goldl); }
+.nb.on i { transform:translateY(-3px); }
+.nb.on::after { content:''; position:absolute; bottom:0; left:20%; right:20%; height:3px; background:var(--gold); border-radius:3px 3px 0 0; }
+
+/* Pages Container */
+.pgwrap { position:fixed; top:var(--HDR); bottom:var(--NAV); left:0; right:0; overflow:hidden; }
+.pginner { display:flex; width:400%; height:100%; transition:transform .3s cubic-bezier(.4,0,.2,1); will-change:transform; }
+.pg { width:25%; height:100%; overflow-y:auto; overflow-x:hidden; padding:12px 14px 16px; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
+
+/* Card Tablet */
+.card { background:var(--surf); border-radius:var(--r); box-shadow:var(--sh); margin-bottom:12px; overflow:hidden; }
+.chd { padding:12px 16px 10px; font-weight:800; font-size:.85rem; color:var(--g8); border-bottom:2px solid var(--brd); display:flex; align-items:center; justify-content:space-between; }
+.chd i { color:var(--g6); margin-right:6px; }
+.cbd { padding:14px 16px; }
+.cft { padding:10px 16px 14px; border-top:1px solid var(--brd); }
+
+/* Import Strip Tablet */
+.istrip {
+  display:flex; align-items:center; gap:12px;
+  background:linear-gradient(135deg,var(--g8),var(--g7));
+  border-radius:var(--rs); padding:12px 16px; margin-bottom:12px;
+  box-shadow:var(--sh);
+}
+.istrip.ok { background:linear-gradient(135deg,var(--g7),var(--g6)); }
+.is-info { flex:1; min-width:0; display:flex; align-items:center; gap:12px; }
+.is-info i { color:var(--g4); font-size:1.2rem; flex-shrink:0; }
+.is-lbl { font-size:.85rem; font-weight:700; color:#fff; }
+.is-sub { font-size:.65rem; color:rgba(255,255,255,.6); }
+.is-btn {
+  background:rgba(255,255,255,.2); border:2px solid rgba(255,255,255,.4);
+  color:#fff; padding:7px 15px; border-radius:12px;
+  font-size:.75rem; font-weight:700; cursor:pointer;
+  white-space:nowrap; flex-shrink:0;
+  display:inline-flex; align-items:center; gap:6px;
+}
+
+/* Form Elements Tablet */
+.flbl { display:block; font-size:.7rem; font-weight:700; color:var(--mut); margin-bottom:5px; text-transform:uppercase; letter-spacing:.5px; }
+select, input[type=file] { width:100%; padding:10px 12px; border:2px solid var(--brd); border-radius:var(--rs); font-size:.9rem; color:var(--txt); background:var(--surf2); outline:none; appearance:none; transition:border .2s; }
+select:focus { border-color:var(--g5); }
+.g2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.g3 { display:grid; grid-template-columns:2.2fr 1fr 1fr; gap:8px; }
+.mt6 { margin-top:8px; } .mt8 { margin-top:10px; } .mt10 { margin-top:12px; }
+
+/* Eval Box Tablet */
+.evbox { background:#fff4f4; border:2px solid #fecaca; border-radius:var(--rs); padding:12px; margin-top:10px; }
+.ev-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; flex-wrap:wrap; gap:8px; }
+.ev-lbl { font-size:.7rem; font-weight:700; color:#b91c1c; text-transform:uppercase; letter-spacing:.5px; }
+.ev-cats { display:flex; gap:12px; flex-wrap:wrap; }
+.ev-cats label { font-size:.75rem; display:flex; align-items:center; gap:5px; cursor:pointer; color:#7f1d1d; }
+.ev-cats input { accent-color:var(--red); width:14px; height:14px; }
+.agrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(40px,1fr)); gap:6px; }
+.ai { height:40px; line-height:40px; text-align:center; border-radius:10px; font-weight:700; font-size:.8rem; cursor:pointer; background:var(--g1); border:2px solid #b5e0c5; color:var(--g8); transition:all .1s; user-select:none; }
+.ai:active { transform:scale(.9); }
+.ai.salah { background:#fde8e8; border-color:#f9a8a8; color:#b91c1c; }
+
+/* Buttons Tablet */
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:12px 18px; border-radius:50px; font-weight:700; font-size:.85rem; cursor:pointer; border:none; transition:all .15s; line-height:1; }
+.bp { background:var(--g6); color:#fff; }
+.bp:active { background:var(--g7); }
+.bo { background:#fff; color:var(--g7); border:2px solid var(--g5); }
+.bo:active { background:var(--g0); }
+.bd { background:#fff0f0; color:var(--red); border:2px solid #ffd0d0; }
+.bsm { padding:8px 15px; font-size:.8rem; }
+.bfull { width:100%; }
+.brow { display:flex; gap:8px; }
+.brow .btn { flex:1; }
+
+/* Badges Tablet */
+.bdg { display:inline-flex; align-items:center; justify-content:center; padding:4px 10px; border-radius:30px; font-size:.7rem; font-weight:700; }
+.bg { background:var(--g1); color:var(--g8); }
+.bgd { background:#fef3c7; color:#7c5c00; }
+.br { background:#fff0f0; color:var(--red); }
+.bb { background:#e3f0fb; color:var(--blu); }
+.bgr { background:#f1f5f9; color:#475569; }
+.bt { background:#e0f7fa; color:var(--tel); }
+
+/* Stats Tablet */
+.s4 { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:12px; }
+.s3 { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:12px; }
+.sc { background:var(--surf); border-radius:var(--rs); padding:12px 8px; text-align:center; box-shadow:var(--sh); }
+.scn { font-size:1.5rem; font-weight:800; line-height:1.2; }
+.scl { font-size:.65rem; color:var(--mut); margin-top:3px; }
+.cg .scn { color:var(--g6); }
+.cy .scn { color:#c07f00; }
+.cr .scn { color:var(--red); }
+.ct .scn { color:var(--tel); }
+
+/* Table Tablet */
+.tbl { width:100%; border-collapse:collapse; font-size:.75rem; }
+.tbl thead tr { background:linear-gradient(135deg,var(--g9),var(--g7)); }
+.tbl th { color:#fff; padding:8px 6px; font-size:.7rem; font-weight:700; white-space:nowrap; text-align:left; }
+.tbl td { padding:8px 6px; border-bottom:1px solid var(--brd); vertical-align:middle; }
+.tn { font-weight:700; color:var(--g9); font-size:.8rem; }
+.tt { color:#aaa; font-size:.65rem; }
+.ts { color:var(--g6); font-weight:600; font-size:.75rem; }
+.bdel { background:none; border:none; color:#ccc; cursor:pointer; padding:4px 6px; font-size:.9rem; }
+.bdel:active { color:var(--red); }
+.tempty { text-align:center; color:#bbb; padding:25px 0; font-size:.85rem; }
+
+/* Absensi Cards Tablet */
+.scard { background:var(--surf); border-radius:var(--rs); padding:12px 14px; margin-bottom:10px; border-left:5px solid var(--g5); box-shadow:var(--sh); }
+.scard.ijin  { border-left-color:var(--yel); }
+.scard.sakit { border-left-color:var(--tel); }
+.scard.alpha { border-left-color:var(--red); }
+.sc-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.sc-name { font-weight:700; font-size:.9rem; }
+.sc-info { display:flex; align-items:center; gap:6px; }
+.strow { display:flex; gap:6px; }
+.stbtn { flex:1; border:2px solid #e5e7eb; background:#f9fafb; border-radius:10px; padding:8px 0; font-size:.7rem; font-weight:700; color:#5a6472; cursor:pointer; text-align:center; transition:all .12s; }
+.stbtn.hadir.on { background:var(--g6); border-color:var(--g6); color:#fff; }
+.stbtn.ijin.on  { background:var(--yel); border-color:var(--yel); color:#2a1800; }
+.stbtn.sakit.on { background:var(--tel); border-color:var(--tel); color:#fff; }
+.stbtn.alpha.on { background:var(--red); border-color:var(--red); color:#fff; }
+.sc-time { font-size:.65rem; color:var(--mut); margin-top:5px; }
+
+/* Viewer Tablet */
+.frow { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+.fchip { padding:6px 14px; border-radius:30px; border:2px solid var(--brd); background:#fff; font-size:.75rem; font-weight:700; cursor:pointer; color:var(--mut); transition:all .13s; }
+.fchip.on { background:var(--g6); color:#fff; border-color:var(--g6); }
+.sinp { flex:1; min-width:140px; padding:8px 14px; border:2px solid var(--brd); border-radius:30px; font-size:.85rem; outline:none; background:#fff; transition:border .18s; }
+.sinp:focus { border-color:var(--g5); }
+.lhdr { display:grid; grid-template-columns:1.8fr 1.4fr 38px 1fr; padding:10px 12px; background:var(--g8); border-radius:12px 12px 0 0; font-size:.7rem; font-weight:700; color:rgba(255,255,255,.9); gap:4px; }
+.lhdr span:nth-child(3) { text-align:center; }
+.lbody { background:#fff; border-radius:0 0 var(--rs) var(--rs); overflow:hidden; }
+.lrow { display:grid; grid-template-columns:1.8fr 1.4fr 38px 1fr; padding:12px 12px; border-bottom:1px solid var(--brd); align-items:center; gap:4px; position:relative; transition:background .1s; }
+.lrow:last-child { border-bottom:none; }
+.cn { display:flex; flex-direction:column; gap:3px; }
+.cnn { font-weight:700; font-size:.85rem; text-transform:uppercase; }
+.cnd { font-size:.65rem; color:#999; }
+.cnt { display:inline-block; font-size:.65rem; font-weight:700; padding:2px 8px; border-radius:30px; margin-top:3px; width:fit-content; }
+.tm { background:#dbeafe; color:#1d4ed8; }
+.tk { background:var(--g1); color:var(--g8); }
+.tb { background:#fef3c7; color:#92400e; }
+.td { background:#f1f5f9; color:#475569; }
+.cs { display:flex; flex-direction:column; gap:3px; }
+.css { font-size:.85rem; font-weight:700; color:var(--g7); }
+.csa { font-size:.7rem; color:var(--mut); }
+.cst { display:flex; align-items:center; justify-content:center; }
+.stc { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.7rem; font-weight:700; color:#fff; }
+.st-L { background:var(--g6); }
+.st-KL { background:var(--yel); color:#2a1800; }
+.st-HADIR { background:var(--g6); }
+.st-SAKIT { background:#e67e22; }
+.st-IJIN { background:var(--blu); }
+.st-ALPHA { background:var(--red); }
+.st-default { background:#95a5a6; }
+.ck { display:flex; flex-direction:column; gap:3px; }
+.cke { font-size:.7rem; font-weight:700; color:#b91c1c; }
+.cka { font-size:.65rem; color:#e67e22; font-weight:600; }
+.ckm { color:#ccc; font-size:.75rem; }
+.bdel-r { position:absolute; right:4px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:#ddd; font-size:1rem; padding:6px; }
+.bdel-r:active { color:var(--red); }
+
+/* Empty State Tablet */
+.empty { text-align:center; padding:40px 18px; color:#b0b8b3; }
+.empty .eico { font-size:2.8rem; margin-bottom:10px; }
+.empty h3 { font-size:.95rem; color:#888; margin-bottom:6px; }
+.empty p  { font-size:.8rem; line-height:1.5; }
+
+/* About Tablet */
+.ab-hero { background:linear-gradient(135deg,var(--g9),var(--g7)); border-radius:var(--r); padding:22px 18px; margin-bottom:12px; text-align:center; color:#fff; box-shadow:var(--sh); }
+.ab-hero .aico { font-size:3rem; margin-bottom:8px; }
+.ab-hero h2 { font-size:1.25rem; font-weight:800; letter-spacing:.6px; }
+.ab-hero p  { font-size:.75rem; opacity:.72; margin-top:5px; }
+.ab-hero .aver { display:inline-block; margin-top:12px; background:rgba(255,255,255,.15); padding:4px 15px; border-radius:30px; font-size:.7rem; font-weight:700; }
+.flist { padding:0; list-style:none; }
+.flist li { display:flex; align-items:flex-start; gap:12px; padding:12px 16px; border-bottom:1px solid var(--brd); font-size:.85rem; line-height:1.5; }
+.flist li:last-child { border-bottom:none; }
+.fico { width:36px; height:36px; border-radius:10px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:1.1rem; }
+.fig { background:var(--g1); }
+.fib { background:#e3f0fb; }
+.fiy { background:#fef3c7; }
+.fir { background:#fff0f0; }
+.ftxt strong { display:block; font-size:.85rem; color:var(--txt); margin-bottom:2px; }
+.ab-foot { text-align:center; padding:14px 14px 6px; font-size:.75rem; color:var(--mut); line-height:1.6; }
+
+/* Font Control yang dipindah ke halaman tentang */
+.about-font-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(4px);
+  padding: 12px 16px;
+  border-radius: 40px;
+  border: 1px solid var(--brd);
+  box-shadow: var(--sh);
+  margin-bottom: 12px;
+  background: var(--surf2);
+}
+.about-font-control label {
+  font-weight: 700;
+  color: var(--g8);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .8rem;
+}
+.about-font-control input {
+  flex: 1;
+  min-width: 120px;
+  max-width: 200px;
+  height: 8px;
+  -webkit-appearance: none;
+  background: linear-gradient(90deg, var(--g5), var(--g7));
+  border-radius: 10px;
+  outline: none;
+  margin: 0 10px;
+}
+.about-font-control input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  background: var(--g9);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.about-font-control span {
+  min-width: 45px;
+  font-weight: 700;
+  color: var(--g9);
+  text-align: center;
+}
+/* Utility Tablet */
+.slbl { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--mut); margin-bottom:5px; }
+</style>
+</head>
+<body>
+
+<!-- Slider asli disembunyikan, tidak ada di sini lagi -->
+<!-- <div class="font-control"> ... </div> -->
+
+<div id="offline">📵 Offline</div>
+
+<!-- Header (Ukuran Tablet) - Ikon diubah menjadi 📚 -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-ico">📚</div>
+    <div>
+      <div class="hdr-title">TAMMA</div>
+      <div class="hdr-sub">Tahfidh Juz Amma & Absensi Siswa</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <span class="hdr-date" id="tglHdr">—</span>
+    <button id="btnInstall" onclick="installApp()">⬇ Pasang</button>
+  </div>
+</div>
+
+<!-- Pages Container -->
+<div class="pgwrap" id="pgwrap">
+  <div class="pginner" id="pginner">
+
+    <!-- TAB 0 — TAHFIDH JUZ 30 -->
+    <div class="pg" id="pg0">
+      <!-- IMPORT STRIP -->
+      <div class="istrip" id="istrip">
+        <div class="is-info">
+          <i class="fas fa-users"></i>
+          <div>
+            <div class="is-lbl" id="istripLbl">Belum ada daftar siswa</div>
+            <div class="is-sub">Upload Excel: Kolom A = Nama, Kolom C = Kelas</div>
+          </div>
+        </div>
+        <label class="is-btn" for="xlsIn">
+          <i class="fas fa-upload"></i> Import
+        </label>
+        <input type="file" id="xlsIn" accept=".xlsx,.xls" style="display:none" onchange="importMasterData(this)">
+      </div>
+
+      <!-- Form Tahfidh -->
+      <div class="card">
+        <div class="chd"><span><i class="fas fa-pen-nib"></i>Form Tahfidh Juz 30</span></div>
+        <div class="cbd">
+          <!-- Siswa -->
+          <div>
+            <label class="flbl">Nama Siswa</label>
+            <select id="namaSiswa"><option value="">— Pilih Siswa —</option></select>
+          </div>
+          <!-- Surat + Ayat -->
+          <div class="g3 mt8">
+            <div><label class="flbl">Surat</label><select id="surat" onchange="renderAyatList()"></select></div>
+            <div><label class="flbl">Dari</label><select id="ayatMulai" onchange="renderAyatGrid()"></select></div>
+            <div><label class="flbl">Sampai</label><select id="ayatSampai" onchange="renderAyatGrid()"></select></div>
+          </div>
+          <!-- Status + Tambahan -->
+          <div class="g2 mt8">
+            <div><label class="flbl">Status</label><select id="statLancar"><option value="L">✅ Lancar</option><option value="KL">⚠️ Kurang Lancar</option></select></div>
+            <div><label class="flbl">Tambahan</label><select id="tambahan"><option value="">— Pilih —</option><option value="Belum Khatam">Belum Khatam</option><option value="Muroja'ah">Muroja'ah</option><option value="Tasmi'">Tasmi'</option></select></div>
+          </div>
+          <!-- Evaluasi Ayat -->
+          <div class="evbox">
+            <div class="ev-hdr">
+              <span class="ev-lbl">Ketuk ayat yang salah</span>
+              <div class="ev-cats">
+                <label><input type="checkbox" class="cat-salah" value="Tajwid"> Tajwid</label>
+                <label><input type="checkbox" class="cat-salah" value="Panjang Pendek"> Panjang Pendek</label>
+                <label><input type="checkbox" class="cat-salah" value="Makhraj"> Makhraj</label>
+              </div>
+            </div>
+            <div class="agrid" id="ayatGrid"></div>
+          </div>
+          <!-- Tombol -->
+          <div class="brow mt10">
+            <button class="btn bp" onclick="simpanTahfidh()"><i class="fas fa-save"></i> Simpan</button>
+            <button class="btn bo" style="flex:0 0 auto;padding:12px 18px" onclick="resetForm()"><i class="fas fa-redo"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Riwayat Tahfidh -->
+      <div class="card">
+        <div class="chd"><span><i class="fas fa-history"></i>Riwayat Tahfidh</span><div style="display:flex;align-items:center;gap:8px"><span class="bdg bg" id="totTahfidh">0</span><button class="btn bsm bd" onclick="hapusSemuaTahfidh()"><i class="fas fa-trash-alt"></i></button></div></div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr><th>Nama</th><th>Surat &amp; Ayat</th><th>Status</th><th>Ket</th><th></th></tr></thead>
+            <tbody id="tblTahfidh"></tbody>
+          </table>
+          <div id="emptyTahfidh" class="tempty" style="display:none"><i class="fas fa-inbox" style="font-size:2rem;display:block;margin-bottom:8px;color:#ddd"></i>Belum ada Tahfidh</div>
+        </div>
+        <div class="cft">
+          <button class="btn bp bfull" onclick="downloadTahfidh()"><i class="fas fa-download"></i> Download Laporan Excel (Tahfidh)</button>
+          <button class="btn bo bfull mt6" onclick="downloadLaporanGabungan()"><i class="fas fa-file-excel"></i> Download Tahfidh + Absensi</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 1 — ABSENSI -->
+    <div class="pg" id="pg1">
+      <!-- Stats Absensi -->
+      <div class="s4">
+        <div class="sc cg"><div class="scn" id="totHadir">0</div><div class="scl">Hadir</div></div>
+        <div class="sc cy"><div class="scn" id="totIjin">0</div><div class="scl">Ijin</div></div>
+        <div class="sc ct"><div class="scn" id="totSakit">0</div><div class="scl">Sakit</div></div>
+        <div class="sc cr"><div class="scn" id="totAlpha">0</div><div class="scl">Alpha</div></div>
+      </div>
+
+      <!-- Daftar Siswa -->
+      <div class="card">
+        <div class="chd"><span><i class="fas fa-users"></i>Daftar Siswa</span><div class="bdg bg" id="jmlSiswaAbsen">0</div></div>
+        <div class="cbd" id="siswaCards">
+          <div class="empty"><div class="eico">📤</div><h3>Import siswa dulu di tab Tahfidh</h3><p>Data siswa akan otomatis muncul di sini</p></div>
+        </div>
+      </div>
+
+      <!-- Riwayat Hari Ini -->
+      <div class="card">
+        <div class="chd"><i class="fas fa-clock"></i>Riwayat Hari Ini</div>
+        <div class="cbd" id="riwAbsensi"><p class="tempty">Belum ada absensi</p></div>
+      </div>
+
+      <!-- Actions -->
+      <div class="brow mt8" style="margin-bottom:4px">
+        <button class="btn bp" onclick="simpanAbsensi()"><i class="fas fa-save"></i> Simpan Excel</button>
+        <button class="btn bd" onclick="resetAbsensiHarian()"><i class="fas fa-trash-alt"></i> Reset Hari Ini</button>
+      </div>
+    </div>
+
+    <!-- TAB 2 — VIEWER -->
+    <div class="pg" id="pg2">
+      <div class="card">
+        <div class="chd"><i class="fas fa-file-excel"></i>Upload File Riwayat</div>
+        <div class="cbd">
+          <div class="slbl">File Tahfidh / absensi (.xlsx, .xls)</div>
+          <input type="file" id="fileViewer" accept=".xlsx,.xls,.csv" class="mt6">
+          <div class="mt8" style="font-size:.7rem;color:var(--mut);line-height:1.5">Mendukung file Tahfidh (kolom: Tanggal, Nama, Surat, Rentang, Status, dll.) dan file absensi (kolom: Nama, Kelas, Status, Waktu).</div>
+        </div>
+      </div>
+
+      <!-- Stats viewer -->
+      <div class="s4" id="vstats" style="display:none">
+        <div class="sc cg"><div class="scn" id="vL">0</div><div class="scl">Lancar</div></div>
+        <div class="sc cy"><div class="scn" id="vKL">0</div><div class="scl">Kurang Lancar</div></div>
+        <div class="sc ct"><div class="scn" id="vHadir">0</div><div class="scl">Hadir</div></div>
+        <div class="sc cr"><div class="scn" id="vAlpha">0</div><div class="scl">Alpha</div></div>
+      </div>
+      <div class="s4" style="margin-top: -6px;" id="vstats2" style="display:none">
+        <div class="sc"><div class="scn" id="vIjin">0</div><div class="scl">Ijin</div></div>
+        <div class="sc"><div class="scn" id="vSakit">0</div><div class="scl">Sakit</div></div>
+        <div class="sc"><div class="scn" id="vTot">0</div><div class="scl">Total</div></div>
+        <div class="sc"></div>
+      </div>
+
+      <!-- Filter -->
+      <div class="frow" id="vfrow" style="display:none">
+        <button class="fchip on" onclick="setVFilter('SEMUA')">Semua</button>
+        <button class="fchip" onclick="setVFilter('L')">Lancar</button>
+        <button class="fchip" onclick="setVFilter('KL')">Kurang Lancar</button>
+        <button class="fchip" onclick="setVFilter('Hadir')">Hadir</button>
+        <button class="fchip" onclick="setVFilter('Ijin')">Ijin</button>
+        <button class="fchip" onclick="setVFilter('Sakit')">Sakit</button>
+        <button class="fchip" onclick="setVFilter('Alpha')">Alpha</button>
+        <input class="sinp" type="text" placeholder="🔍 Cari nama..." id="searchV" oninput="renderViewer()">
+      </div>
+
+      <!-- List header + body -->
+      <div class="lhdr" id="vlhdr" style="display:none">
+        <span>Nama</span><span>Detail</span><span style="text-align:center">Status</span><span>Ket</span>
+      </div>
+      <div class="lbody" id="vlist">
+        <div class="empty"><div class="eico">📂</div><h3>Belum ada data</h3><p>Upload file Excel atau drag & drop ke halaman ini</p></div>
+      </div>
+    </div>
+
+    <!-- TAB 3 — TENTANG (dengan slider font dipindahkan ke sini) - Ikon hero diubah menjadi 📚 -->
+    <div class="pg" id="pg3">
+      <div class="ab-hero"><div class="aico">📚</div><h2>TAMMA</h2><p>Manajemen Tahfidh Juz Amma & Absensi Siswa</p><span class="aver">Versi 1.0</span></div>
+      
+      <!-- SLIDER FONT DIPINDAHKAN KE SINI, dengan class khusus -->
+      <div class="about-font-control">
+        <label><i class="fas fa-text-height"></i> Ukuran Font</label>
+        <input type="range" id="fontSliderAbout" min="13" max="20" value="15" step="1">
+        <span id="fontValueAbout">15px</span>
+      </div>
+      
+      <div class="card"><div class="chd"><i class="fas fa-star"></i>Fitur Aplikasi</div><ul class="flist"><li><div class="fico fig">📖</div><div class="ftxt"><strong>Tahfidh Juz 30</strong>Input Tahfidh harian khusus surat-surat Juz 30, evaluasi ayat salah per kategori, download laporan Excel.</div></li><li><div class="fico fib">👥</div><div class="ftxt"><strong>Absensi Terintegrasi</strong>Import siswa SEKALI untuk Tahfidh dan Absen. Tandai Hadir / Ijin / Sakit / Alpha, statistik real-time.</div></li><li><div class="fico fiy">📊</div><div class="ftxt"><strong>Viewer Universal</strong>Buka file Excel Tahfidh atau absensi, filter status, cari nama, statistik otomatis.</div></li><li><div class="fico fir">💾</div><div class="ftxt"><strong>Offline & PWA</strong>Data tersimpan di perangkat. Dapat dipasang ke layar utama HP tanpa Play Store.</div></li></ul></div>
+      <div class="card"><div class="chd"><i class="fas fa-database"></i>Data Siswa Tersimpan</div><div class="cbd"><div id="dsSiswaInfo" style="font-size:.85rem;color:var(--mut);margin-bottom:8px">Belum ada siswa tersimpan</div><div id="dsSiswaList" style="max-height:180px;overflow-y:auto;margin-bottom:12px"></div><button class="btn bd bsm" onclick="hapusSemuaDataSiswa()"><i class="fas fa-trash-alt"></i> Hapus Semua Data Siswa</button></div></div>
+      <div class="ab-foot">Data disimpan lokal di perangkat Anda.<br>Tidak ada data yang dikirim ke server.<br><br><strong style="color:var(--g7)">Tamma</strong> — Dibuat untuk kemudahan pencatatan tahfidh juz amma dan absensi Siswa</div>
+    </div>
+
+  </div><!-- pginner -->
+</div><!-- pgwrap -->
+
+<!-- Bottom Navigation -->
+<div class="bnav">
+  <button class="nb on" id="nb0" onclick="goPage(0)"><i class="fas fa-book-open"></i>Tahfidh</button>
+  <button class="nb" id="nb1" onclick="goPage(1)"><i class="fas fa-users"></i>Absen</button>
+  <button class="nb" id="nb2" onclick="goPage(2)"><i class="fas fa-chart-bar"></i>Viewer</button>
+  <button class="nb" id="nb3" onclick="goPage(3)"><i class="fas fa-info-circle"></i>Tentang</button>
+</div>
+
+<!-- Install Banner (sama) -->
+<div id="instBanner" style="display:none; position:fixed; bottom:var(--NAV); left:8px; right:8px; z-index:99; background:var(--g8); color:#fff; border-radius:14px 14px 0 0; padding:10px 13px; align-items:center; gap:8px; flex-wrap:wrap; box-shadow:0 -2px 10px rgba(0,0,0,.2);">
+  <div style="flex:1"><strong>📲 Pasang sebagai Aplikasi</strong><p style="font-size:.68rem; opacity:.85;">Install ke layar utama untuk akses lebih cepat</p></div>
+  <button class="ib-btn" id="instBtn" style="background:var(--gold); color:#2a1800; border:none; padding:6px 13px; border-radius:8px; font-weight:700; font-size:.74rem; cursor:pointer;">Install</button>
+  <button class="ib-x" id="dismBtn" style="background:none; border:none; color:rgba(255,255,255,.5); cursor:pointer; font-size:1rem; margin-left:auto;">✕</button>
+</div>
+
+<!-- Drag Overlay -->
+<div class="dragov" id="dragov" style="display:none; position:fixed; inset:0; background:rgba(12,74,42,.2); z-index:500; align-items:center; justify-content:center; backdrop-filter:blur(3px);">
+  <div class="dragbox" style="background:#fff; border:3px dashed var(--g5); border-radius:20px; padding:32px 48px; text-align:center; color:var(--g7); font-size:.95rem; font-weight:700;"><div style="font-size:2rem;margin-bottom:7px">📂</div>Lepaskan file Excel di sini</div>
+</div>
+
+<script>
+// (Semua fungsi JavaScript sama persis seperti kode asli)
+// ... (salin semua fungsi dari kode asli di sini, tanpa perubahan)
+// ==============================
+// PWA & INSTALL (sama seperti sebelumnya) - LOGO PWA TELAH DIUBAH MENJADI 📚
+// ==============================
+(function(){
+  // Ikon baru dengan emoji 📚 (tumpukan buku) dan teks putih agar kontras
+  const ic="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20512%20512%22%3E%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%22112%22%20fill%3D%22%230c4a2a%22%2F%3E%3Ctext%20x%3D%22256%22%20y%3D%22320%22%20font-size%3D%22280%22%20text-anchor%3D%22middle%22%20fill%3D%22%23ffffff%22%3E%F0%9F%93%9A%3C%2Ftext%3E%3C%2Fsvg%3E";
+  const m={name:"Tahfidh Juz Amma",short_name:"Tamma",start_url:".",display:"standalone",orientation:"portrait",background_color:"#0c4a2a",theme_color:"#0c4a2a",icons:[{src:ic,sizes:"512x512",type:"image/svg+xml",purpose:"any maskable"}]};
+  document.head.appendChild(Object.assign(document.createElement('link'),{rel:'manifest',href:URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/json'}))}));
+})();
+if('serviceWorker' in navigator){
+  const sw=`const C='tamma-v1';self.addEventListener('install',()=>self.skipWaiting());self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(n=>n!==C).map(n=>caches.delete(n)))));self.clients.claim()});self.addEventListener('fetch',e=>e.respondWith(fetch(e.request).catch(()=>caches.match(e.request))));`;
+  navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'})),{scope:'/'}).catch(()=>{});
+}
+window.addEventListener('online',()=>document.getElementById('offline').style.display='none');
+window.addEventListener('offline',()=>document.getElementById('offline').style.display='block');
+
+let dp=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault(); dp=e;
+  document.getElementById('btnInstall').style.display='block';
+  document.getElementById('instBanner').style.display='flex';
+});
+document.getElementById('instBtn').addEventListener('click',async()=>{
+  if(!dp)return; dp.prompt(); await dp.userChoice; dp=null;
+  document.getElementById('instBanner').style.display='none';
+});
+document.getElementById('dismBtn').addEventListener('click',()=>document.getElementById('instBanner').style.display='none');
+window.addEventListener('appinstalled',()=>{
+  document.getElementById('instBanner').style.display='none';
+  document.getElementById('btnInstall').style.display='none';
+});
+window.installApp=async function(){
+  if(dp){ dp.prompt(); await dp.userChoice; dp=null; }
+  else alert('Tap menu ⋮ browser → "Tambahkan ke layar utama"');
+};
+
+// ==============================
+// NAVIGATION & TANGGAL
+// ==============================
+let curPg=0, tx0=0, ty0=0;
+
+function goPage(i){
+  curPg=i;
+  document.getElementById('pginner').style.transform=`translateX(-${i*25}%)`;
+  for(let j=0;j<4;j++) document.getElementById('nb'+j).classList.toggle('on',j===i);
+  if(i===1){ renderSiswaCards(); updateStatsAbsensi(); }
+  if(i===3){ renderDsSiswa(); }
+}
+
+const pgw=document.getElementById('pgwrap');
+pgw.addEventListener('touchstart',e=>{tx0=e.changedTouches[0].screenX; ty0=e.changedTouches[0].screenY;},{passive:true});
+pgw.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].screenX-tx0;
+  const dy=e.changedTouches[0].screenY-ty0;
+  if(Math.abs(dx)<55||Math.abs(dy)>Math.abs(dx)*.9)return;
+  goPage(dx>0?Math.max(0,curPg-1):Math.min(3,curPg+1));
+},{passive:true});
+
+(function(){
+  const d=new Date();
+  const days=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+  const mon=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+  document.getElementById('tglHdr').textContent=`${days[d.getDay()]}, ${d.getDate()} ${mon[d.getMonth()]} ${d.getFullYear()}`;
+})();
+
+// ==============================
+// DATA GLOBAL TERPADU
+// ==============================
+let masterSiswa = JSON.parse(localStorage.getItem('db_master_siswa')) || [];
+let dataTahfidh = JSON.parse(localStorage.getItem('db_Tahfidh')) || [];
+let dataAbsensi = JSON.parse(localStorage.getItem('db_absensi_harian')) || [];
+
+// ==============================
+// SURAT JUZ 30 (SURAT 78-114)
+// ==============================
+const SURAT_JUZ30 = [
+  {n:78, nm:"An-Naba'", a:40}, {n:79, nm:"An-Nazi'at", a:46}, {n:80, nm:"'Abasa", a:42},
+  {n:81, nm:"At-Takwir", a:29}, {n:82, nm:"Al-Infitar", a:19}, {n:83, nm:"Al-Mutaffifin", a:36},
+  {n:84, nm:"Al-Inshiqaq", a:25}, {n:85, nm:"Al-Buruj", a:22}, {n:86, nm:"At-Tariq", a:17},
+  {n:87, nm:"Al-A'la", a:19}, {n:88, nm:"Al-Ghashiyah", a:26}, {n:89, nm:"Al-Fajr", a:30},
+  {n:90, nm:"Al-Balad", a:20}, {n:91, nm:"Ash-Shams", a:15}, {n:92, nm:"Al-Layl", a:21},
+  {n:93, nm:"Ad-Duha", a:11}, {n:94, nm:"Ash-Sharh", a:8}, {n:95, nm:"At-Tin", a:8},
+  {n:96, nm:"Al-'Alaq", a:19}, {n:97, nm:"Al-Qadr", a:5}, {n:98, nm:"Al-Bayyinah", a:8},
+  {n:99, nm:"Az-Zalzalah", a:8}, {n:100, nm:"Al-'Adiyat", a:11}, {n:101, nm:"Al-Qari'ah", a:11},
+  {n:102, nm:"At-Takathur", a:8}, {n:103, nm:"Al-'Asr", a:3}, {n:104, nm:"Al-Humazah", a:9},
+  {n:105, nm:"Al-Fil", a:5}, {n:106, nm:"Quraish", a:4}, {n:107, nm:"Al-Ma'un", a:7},
+  {n:108, nm:"Al-Kawthar", a:3}, {n:109, nm:"Al-Kafirun", a:6}, {n:110, nm:"An-Nasr", a:3},
+  {n:111, nm:"Al-Masad", a:5}, {n:112, nm:"Al-Ikhlas", a:4}, {n:113, nm:"Al-Falaq", a:5},
+  {n:114, nm:"An-Nas", a:6}
+];
+
+// Populate surat dropdown JUZ 30
+(()=>{
+  const sel=document.getElementById('surat');
+  SURAT_JUZ30.forEach(s=>sel.add(new Option(`${s.n}. ${s.nm}`, s.nm)));
+})();
+
+// ==============================
+// FUNGSI IMPORT MASTER DATA
+// ==============================
+function importMasterData(input){
+  const f = input.files[0];
+  if(!f) return;
+  
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:1});
+      
+      let startRow = 0;
+      if (rows.length > 0) {
+        const firstCell = (rows[0][0] || '').toString().trim().toLowerCase();
+        if (/^(nama|no|siswa)/i.test(firstCell)) {
+          startRow = 1;
+        }
+      }
+      
+      const siswaBaru = [];
+      for(let i = startRow; i < rows.length; i++) {
+        const row = rows[i];
+        if(!row || row.length < 2) continue;
+        const nama = (row[0] || '').toString().trim();
+        const kelas = (row[2] || 'Umum').toString().trim();
+        if(!nama) continue;
+        siswaBaru.push({nama, kelas});
+      }
+      
+      if(siswaBaru.length === 0) {
+        alert('Tidak ada data valid. Pastikan kolom A = Nama, kolom C = Kelas (opsional)');
+        return;
+      }
+      
+      const uniqueSiswa = [];
+      const seen = new Set();
+      siswaBaru.forEach(s => {
+        if(!seen.has(s.nama)) {
+          seen.add(s.nama);
+          uniqueSiswa.push(s);
+        }
+      });
+      
+      masterSiswa = uniqueSiswa;
+      localStorage.setItem('db_master_siswa', JSON.stringify(masterSiswa));
+      
+      dataTahfidh = dataTahfidh.filter(s => masterSiswa.some(m => m.nama === s.nama));
+      localStorage.setItem('db_Tahfidh', JSON.stringify(dataTahfidh));
+      
+      const now = new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+      dataAbsensi = masterSiswa.map(s => ({
+        nama: s.nama,
+        kelas: s.kelas,
+        status: 'Hadir',
+        waktu: now
+      }));
+      localStorage.setItem('db_absensi_harian', JSON.stringify(dataAbsensi));
+      
+      renderDdSiswa();
+      updateStrip();
+      renderSiswaCards();
+      updateStatsAbsensi();
+      renderRiwAbsensi();
+      renderTblTahfidh();
+      renderDsSiswa();
+      
+      alert(`✅ Berhasil import ${masterSiswa.length} siswa.`);
+      input.value = '';
+      
+    } catch(err) {
+      alert('Error: ' + err.message);
+    }
+  };
+  r.readAsArrayBuffer(f);
+}
+
+function updateStrip(){
+  const s=document.getElementById('istrip');
+  const l=document.getElementById('istripLbl');
+  if(masterSiswa.length){ 
+    l.textContent=`${masterSiswa.length} siswa tersimpan`; 
+    s.classList.add('ok'); 
+  } else { 
+    l.textContent='Belum ada daftar siswa'; 
+    s.classList.remove('ok'); 
+  }
+}
+
+function renderDdSiswa(){
+  const sel=document.getElementById('namaSiswa');
+  sel.innerHTML='<option value="">— Pilih Siswa —</option>';
+  masterSiswa.forEach(s => sel.add(new Option(s.nama, s.nama)));
+}
+
+// ==============================
+// TAHFIDH JUZ 30
+// ==============================
+function renderAyatList(){
+  const s = SURAT_JUZ30.find(x => x.nm === document.getElementById('surat').value);
+  if(!s) return;
+  
+  const m = document.getElementById('ayatMulai');
+  const sp = document.getElementById('ayatSampai');
+  m.innerHTML = '';
+  sp.innerHTML = '';
+  
+  for(let i=1; i<=s.a; i++){ 
+    m.add(new Option(i,i)); 
+    sp.add(new Option(i,i)); 
+  }
+  sp.value = s.a;
+  renderAyatGrid();
+}
+
+function renderAyatGrid(){
+  const g = document.getElementById('ayatGrid');
+  const s = parseInt(document.getElementById('ayatMulai').value) || 1;
+  const e = parseInt(document.getElementById('ayatSampai').value) || 1;
+  
+  g.innerHTML = '';
+  for(let i=s; i<=e; i++){
+    const d = document.createElement('div');
+    d.className = 'ai'; 
+    d.textContent = i;
+    d.onclick = () => d.classList.toggle('salah');
+    g.appendChild(d);
+  }
+}
+
+function simpanTahfidh(){
+  const nama = document.getElementById('namaSiswa').value;
+  if(!nama){ alert('Pilih Nama Siswa!'); return; }
+  
+  const ayatSalah = [...document.querySelectorAll('.ai.salah')].map(x => x.textContent);
+  const tambahan = document.getElementById('tambahan').value;
+  const catSalah = [...document.querySelectorAll('.cat-salah:checked')].map(x => x.value);
+  
+  const rec = {
+    id: Date.now(),
+    tgl: new Date().toLocaleDateString('id-ID'),
+    nama,
+    surat: document.getElementById('surat').value,
+    rentang: `${document.getElementById('ayatMulai').value}-${document.getElementById('ayatSampai').value}`,
+    stat: document.getElementById('statLancar').value,
+    salah: ayatSalah.join(', ') || '-',
+    jml: ayatSalah.length,
+    tambahan: tambahan || '-',
+    kategori: catSalah.join(', ') || '-'
+  };
+  
+  dataTahfidh.unshift(rec);
+  localStorage.setItem('db_Tahfidh', JSON.stringify(dataTahfidh));
+  renderTblTahfidh();
+  resetForm();
+}
+
+function renderTblTahfidh(){
+  const tbody = document.getElementById('tblTahfidh');
+  const empty = document.getElementById('emptyTahfidh');
+  document.getElementById('totTahfidh').textContent = dataTahfidh.length;
+  
+  if(!dataTahfidh.length){ 
+    tbody.innerHTML = ''; 
+    empty.style.display = 'block'; 
+    return; 
+  }
+  
+  empty.style.display = 'none';
+  tbody.innerHTML = dataTahfidh.map(i => {
+    const kl = i.stat === 'KL';
+    let ket = [];
+    if(i.jml > 0) ket.push(`<span style="color:#b91c1c;font-size:.6rem">${i.jml} salah${i.kategori!=='-'?' · '+i.kategori:''}</span>`);
+    if(i.salah && i.salah !== '-') ket.push(`<span style="color:#e67e22;font-size:.56rem">${i.salah}</span>`);
+    const tam = (i.tambahan && i.tambahan!=='-') ? `<span class="bdg bb" style="font-size:.56rem">${i.tambahan}</span>` : '';
+    
+    return `<tr>
+      <td><div class="tn">${i.nama}</div><div class="tt">${i.tgl}</div>${tam}</td>
+      <td><div class="ts">${i.surat}</div><div style="color:#888;font-size:.57rem">${i.rentang}</div></td>
+      <td><span class="${kl?'bdg bgd':'bdg bg'}">${kl?'KL':'L'}</span></td>
+      <td>${ket.join('<br>')||'<span style="color:#ccc">—</span>'}</td>
+      <td><button class="bdel" onclick="delTahfidh('${i.id}')">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+window.delTahfidh = function(id){
+  if(!confirm('Hapus data ini?')) return;
+  dataTahfidh = dataTahfidh.filter(x => x.id != id);
+  localStorage.setItem('db_Tahfidh', JSON.stringify(dataTahfidh));
+  renderTblTahfidh();
+};
+
+window.hapusSemuaTahfidh = function(){
+  if(!dataTahfidh.length){ alert('Sudah kosong'); return; }
+  if(!confirm(`Hapus ${dataTahfidh.length} riwayat?`)) return;
+  dataTahfidh = [];
+  localStorage.setItem('db_Tahfidh', JSON.stringify(dataTahfidh));
+  renderTblTahfidh();
+};
+
+function resetForm(){
+  document.querySelectorAll('.cat-salah').forEach(x => x.checked = false);
+  document.getElementById('tambahan').value = '';
+  renderAyatGrid();
+}
+
+function downloadTahfidh(){
+  if(!dataTahfidh.length){ alert('Belum ada data'); return; }
+  
+  const ws = XLSX.utils.json_to_sheet(dataTahfidh.map(i => ({
+    'Tanggal': i.tgl,
+    'Nama Siswa': i.nama,
+    'Surat': i.surat,
+    'Rentang Ayat': i.rentang,
+    'Status': i.stat,
+    'Jml Salah': i.jml,
+    'Ayat Salah': i.salah,
+    'Kategori': i.kategori,
+    'Tambahan': i.tambahan
+  })));
+  
+  ws['!cols'] = [{wch:12},{wch:25},{wch:20},{wch:14},{wch:8},{wch:10},{wch:20},{wch:20},{wch:16}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Tahfidh Juz 30");
+  XLSX.writeFile(wb, `Tahfidh_juz30_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+function downloadLaporanGabungan() {
+  if (!masterSiswa.length && !dataTahfidh.length) {
+    alert('Tidak ada data untuk didownload');
+    return;
+  }
+  
+  const wb = XLSX.utils.book_new();
+  
+  if (dataTahfidh.length) {
+    const wsTahfidh = XLSX.utils.json_to_sheet(dataTahfidh.map(i => ({
+      'Tanggal': i.tgl,
+      'Nama Siswa': i.nama,
+      'Surat': i.surat,
+      'Rentang Ayat': i.rentang,
+      'Status': i.stat,
+      'Jml Salah': i.jml,
+      'Ayat Salah': i.salah,
+      'Kategori': i.kategori,
+      'Tambahan': i.tambahan
+    })));
+    wsTahfidh['!cols'] = [{wch:12},{wch:25},{wch:20},{wch:14},{wch:8},{wch:10},{wch:20},{wch:20},{wch:16}];
+    XLSX.utils.book_append_sheet(wb, wsTahfidh, "Tahfidh Juz 30");
+  } else {
+    const wsTahfidh = XLSX.utils.aoa_to_sheet([['Tanggal','Nama Siswa','Surat','Rentang Ayat','Status','Jml Salah','Ayat Salah','Kategori','Tambahan']]);
+    XLSX.utils.book_append_sheet(wb, wsTahfidh, "Tahfidh Juz 30");
+  }
+  
+  const d = new Date();
+  const tglStr = d.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  
+  const absenData = [
+    ['Nama', 'Kelas', 'Status', 'Waktu'],
+    ...dataAbsensi.map(a => [a.nama, a.kelas || 'Umum', a.status, a.waktu || '-'])
+  ];
+  const wsAbsen = XLSX.utils.aoa_to_sheet(absenData);
+  XLSX.utils.book_append_sheet(wb, wsAbsen, "Absensi");
+  
+  const ringkasan = [
+    ['RINGKASAN ABSENSI'],
+    ['Tanggal', tglStr],
+    ['Total Siswa', masterSiswa.length],
+    ['Hadir', dataAbsensi.filter(a => a.status === 'Hadir').length],
+    ['Ijin', dataAbsensi.filter(a => a.status === 'Ijin').length],
+    ['Sakit', dataAbsensi.filter(a => a.status === 'Sakit').length],
+    ['Alpha', dataAbsensi.filter(a => a.status === 'Alpha').length]
+  ];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(ringkasan), "Ringkasan");
+  
+  XLSX.writeFile(wb, `laporan_tahfidh_juz_amma_${new Date().toISOString().slice(0, 10)}.xlsx`);
+}
+
+// ==============================
+// ABSENSI
+// ==============================
+function renderSiswaCards(){
+  const c = document.getElementById('siswaCards');
+  document.getElementById('jmlSiswaAbsen').textContent = masterSiswa.length;
+  
+  if(!masterSiswa.length){
+    c.innerHTML = '<div class="empty"><div class="eico">📤</div><h3>Import siswa dulu di tab Tahfidh</h3><p>Data siswa akan otomatis muncul di sini</p></div>';
+    return;
+  }
+  
+  syncAbsensiWithMaster();
+  
+  const stMap = {Hadir:'bg', Ijin:'bgd', Sakit:'bt', Alpha:'br'};
+  
+  c.innerHTML = masterSiswa.map(s => {
+    const ab = dataAbsensi.find(a => a.nama === s.nama) || {status:'Hadir', waktu:''};
+    const stl = ab.status.toLowerCase();
+    
+    return `<div class="scard ${stl}">
+      <div class="sc-top">
+        <span class="sc-name">${s.nama}</span>
+        <div class="sc-info">
+          <span class="bdg bgr" style="font-size:.65rem">${s.kelas || 'Umum'}</span>
+          <span class="bdg ${stMap[ab.status] || 'bgr'}">${ab.status}</span>
+        </div>
+      </div>
+      <div class="strow">
+        <button class="stbtn hadir ${ab.status === 'Hadir' ? 'on' : ''}" onclick="setStatusAbsen('${s.nama.replace(/'/g, "\\'")}','Hadir')">✓ Hadir</button>
+        <button class="stbtn ijin  ${ab.status === 'Ijin' ? 'on' : ''}"  onclick="setStatusAbsen('${s.nama.replace(/'/g, "\\'")}','Ijin')">Ijin</button>
+        <button class="stbtn sakit ${ab.status === 'Sakit' ? 'on' : ''}" onclick="setStatusAbsen('${s.nama.replace(/'/g, "\\'")}','Sakit')">Sakit</button>
+        <button class="stbtn alpha ${ab.status === 'Alpha' ? 'on' : ''}" onclick="setStatusAbsen('${s.nama.replace(/'/g, "\\'")}','Alpha')">Alpha</button>
+      </div>
+      ${ab.waktu ? `<div class="sc-time">🕐 ${ab.waktu}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function syncAbsensiWithMaster(){
+  const existingNames = new Set(dataAbsensi.map(a => a.nama));
+  const now = new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+  
+  masterSiswa.forEach(s => {
+    if(!existingNames.has(s.nama)){
+      dataAbsensi.push({
+        nama: s.nama,
+        kelas: s.kelas,
+        status: 'Hadir',
+        waktu: now
+      });
+    }
+  });
+  
+  const masterNames = new Set(masterSiswa.map(s => s.nama));
+  dataAbsensi = dataAbsensi.filter(a => masterNames.has(a.nama));
+  
+  localStorage.setItem('db_absensi_harian', JSON.stringify(dataAbsensi));
+}
+
+window.setStatusAbsen = function(nama, status){
+  const now = new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+  const idx = dataAbsensi.findIndex(a => a.nama === nama);
+  
+  if(idx >= 0){
+    dataAbsensi[idx].status = status;
+    dataAbsensi[idx].waktu = now;
+  } else {
+    const siswa = masterSiswa.find(s => s.nama === nama);
+    if(siswa){
+      dataAbsensi.push({...siswa, status, waktu: now});
+    }
+  }
+  
+  localStorage.setItem('db_absensi_harian', JSON.stringify(dataAbsensi));
+  renderSiswaCards();
+  updateStatsAbsensi();
+  renderRiwAbsensi();
+};
+
+function updateStatsAbsensi(){
+  document.getElementById('totHadir').textContent = dataAbsensi.filter(a => a.status === 'Hadir').length;
+  document.getElementById('totIjin').textContent = dataAbsensi.filter(a => a.status === 'Ijin').length;
+  document.getElementById('totSakit').textContent = dataAbsensi.filter(a => a.status === 'Sakit').length;
+  document.getElementById('totAlpha').textContent = dataAbsensi.filter(a => a.status === 'Alpha').length;
+}
+
+function renderRiwAbsensi(){
+  const c = document.getElementById('riwAbsensi');
+  const list = dataAbsensi.filter(a => a.waktu);
+  
+  if(!list.length){ 
+    c.innerHTML = '<p class="tempty">Belum ada absensi</p>'; 
+    return; 
+  }
+  
+  const clr = {Hadir:'#22884d', Ijin:'#c07f00', Sakit:'#00838f', Alpha:'#e53935'};
+  
+  let h = list.slice(0,8).map(a => `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px dashed var(--brd);">
+    <span style="display:flex;align-items:center;gap:8px">
+      <span style="width:8px;height:8px;border-radius:50%;background:${clr[a.status]||'#888'};"></span>${a.nama}
+    </span>
+    <span class="bdg bgr">${a.waktu}</span>
+  </div>`).join('');
+  
+  if(list.length > 8) h += `<div style="text-align:center;color:var(--mut);font-size:.7rem;margin-top:6px">... +${list.length-8} lainnya</div>`;
+  
+  c.innerHTML = h;
+}
+
+function simpanAbsensi(){
+  if(!masterSiswa.length){ alert('Tidak ada data absensi'); return; }
+  
+  const d = new Date();
+  const tglStr = d.toLocaleDateString('id-ID', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+  
+  const dataRows = [
+    ['Nama', 'Kelas', 'Status', 'Waktu'],
+    ...dataAbsensi.map(a => [a.nama, a.kelas || 'Umum', a.status, a.waktu || '-'])
+  ];
+  
+  const summaryRows = [
+    ['LAPORAN ABSENSI MENGAJI'],
+    ['Tanggal', tglStr],
+    ['Total Siswa', masterSiswa.length],
+    ['Hadir', dataAbsensi.filter(a => a.status === 'Hadir').length],
+    ['Ijin', dataAbsensi.filter(a => a.status === 'Ijin').length],
+    ['Sakit', dataAbsensi.filter(a => a.status === 'Sakit').length],
+    ['Alpha', dataAbsensi.filter(a => a.status === 'Alpha').length]
+  ];
+  
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(dataRows), "Data Absensi");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryRows), "Ringkasan");
+  XLSX.writeFile(wb, `absensi_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+function resetAbsensiHarian(){
+  if(!confirm('Reset data absensi hari ini?')) return;
+  
+  const now = new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+  dataAbsensi = masterSiswa.map(s => ({
+    nama: s.nama,
+    kelas: s.kelas,
+    status: 'Hadir',
+    waktu: now
+  }));
+  
+  localStorage.setItem('db_absensi_harian', JSON.stringify(dataAbsensi));
+  renderSiswaCards();
+  updateStatsAbsensi();
+  renderRiwAbsensi();
+}
+
+// ==============================
+// VIEWER
+// ==============================
+let vData = [], vFil = 'SEMUA', vCols = {};
+
+function detectCols(headers){
+  const h = headers.map(x => (x||'').toString().toLowerCase().trim());
+  function find(...cs){ for(const c of cs){ const i = h.findIndex(x => x.includes(c)); if(i>=0) return headers[i]; } return null; }
+  return {
+    tanggal: find('tanggal','date'), 
+    nama: find('nama siswa','nama','name'),
+    surat: find('surat'), 
+    rentang: find('rentang ayat','rentang','ayat'),
+    status: find('status'), 
+    jmlSalah: find('jml salah','jumlah salah'),
+    ayatSalah: find('ayat salah'), 
+    kategori: find('kategori salah','kategori','ket'),
+    tambahan: find('tambahan','kelas','catatan'),
+    waktu: find('waktu','time')
+  };
+}
+
+function stCode(s){
+  if(!s) return 'default';
+  const v = s.toString().toUpperCase().trim();
+  if(['L','KL','HADIR','SAKIT','IJIN','ALPHA'].includes(v)) return v;
+  if(v === 'IZIN') return 'IJIN'; 
+  if(v === 'ALPA') return 'ALPHA'; 
+  return 'default';
+}
+
+function tagCls(t){
+  if(!t) return '';
+  const v = t.toString().toLowerCase();
+  if(v.includes('muroja')) return 'tm';
+  if(v.includes('khatam') && !v.includes('belum')) return 'tk';
+  if(v.includes('belum')) return 'tb';
+  return 'td';
+}
+
+function fmtDate(v){
+  if(!v) return '';
+  if(typeof v === 'number'){ 
+    const d = new Date(Math.round((v-25569)*86400*1000)); 
+    return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`; 
+  }
+  return v.toString();
+}
+
+function setVFilter(f){
+  vFil = f;
+  document.querySelectorAll('.fchip').forEach(b => {
+    const t = b.textContent.trim();
+    b.classList.toggle('on', (f==='SEMUA' && t==='Semua') || 
+                             (f==='L' && t==='Lancar') ||
+                             (f==='KL' && t==='Kurang Lancar') ||
+                             (f==='Hadir' && t==='Hadir') ||
+                             (f==='Ijin' && t==='Ijin') ||
+                             (f==='Sakit' && t==='Sakit') ||
+                             (f==='Alpha' && t==='Alpha'));
+  });
+  renderViewer();
+}
+function renderViewer(){
+  const search = (document.getElementById('searchV').value || '').toLowerCase();
+  const data = vData.filter(row => {
+    const st = (row[vCols.status] || '').toString().toUpperCase().trim();
+    const nm = (row[vCols.nama] || '').toString().toLowerCase();
+    if (vFil !== 'SEMUA') {
+      const stUpper = st.toUpperCase();
+      if (vFil === 'L' && stUpper !== 'L') return false;
+      if (vFil === 'KL' && stUpper !== 'KL') return false;
+      if (vFil === 'Hadir' && stUpper !== 'HADIR') return false;
+      if (vFil === 'Ijin' && stUpper !== 'IJIN') return false;
+      if (vFil === 'Sakit' && stUpper !== 'SAKIT') return false;
+      if (vFil === 'Alpha' && stUpper !== 'ALPHA') return false;
+    }
+    return nm.includes(search);
+  });
+  
+  const el = document.getElementById('vlist');
+  if(!data.length){
+    el.innerHTML = '<div class="empty"><div class="eico">🔍</div><h3>Tidak ada data</h3><p>Ubah filter atau kata kunci</p></div>';
+    return;
+  }
+  
+  el.innerHTML = data.map(row => {
+    const ri = vData.indexOf(row);
+    const st = row[vCols.status] || '';
+    const sc = stCode(st); 
+    
+    // Tentukan teks yang ditampilkan di lingkaran status
+    const stRaw = st.toString().toUpperCase().trim();
+    let sl;
+    if (sc === 'HADIR') sl = 'H';
+    else if (sc === 'IJIN') sl = 'I';
+    else if (sc === 'SAKIT') sl = 'S';
+    else if (sc === 'ALPHA') sl = 'A';
+    else if (sc === 'L') sl = 'L';
+    else if (sc === 'KL') sl = 'KL';
+    else sl = stRaw.substring(0,2) || '?'; // fallback
+    
+    const nama = row[vCols.nama] || '-';
+    const tgl = fmtDate(row[vCols.tanggal]);
+    const surat = row[vCols.surat] || ''; 
+    const rentang = row[vCols.rentang] || '';
+    const waktu = row[vCols.waktu] || '';
+    const tambahan = row[vCols.tambahan] || '';
+    const jml = Number(row[vCols.jmlSalah]); 
+    const hasErr = !isNaN(jml) && jml > 0;
+    const kat = (row[vCols.kategori] || '').toString().trim();
+    const ket1 = [hasErr?`${jml} salah`:'', kat && kat!=='-'?kat:''].filter(Boolean).join(' · ');
+    const av = (row[vCols.ayatSalah] || '').toString().trim();
+    const ayatStr = (av && av!=='-' && av!=='0') ? 'Ayat: '+av : '';
+    
+    let detailHtml = '';
+    if (surat) {
+      // Data Tahfidh
+      detailHtml = `<div class="cs">
+        ${surat ? `<span class="css">${surat}</span>${rentang ? `<span class="csa">${rentang}</span>` : ''}` : `<span style="color:#ccc">—</span>`}
+      </div>`;
+    } else {
+      // Data Absensi
+      detailHtml = `<div class="cs">
+        <span class="csa">${waktu ? '🕐 '+waktu : ''}</span>
+        ${tambahan ? `<span class="cnt ${tagCls(tambahan)}">${tambahan}</span>` : ''}
+      </div>`;
+    }
+    
+    return `<div class="lrow">
+      <div class="cn">
+        <span class="cnn">${nama}</span>
+        ${tgl ? `<span class="cnd">${tgl}</span>` : ''}
+      </div>
+      ${detailHtml}
+      <div class="cst"><span class="stc st-${sc}">${sl}</span></div>
+      <div class="ck">
+        ${ket1 ? `<span class="cke">${ket1}</span>${ayatStr ? `<span class="cka">${ayatStr}</span>` : ''}` : `<span class="ckm">—</span>`}
+      </div>
+      <button class="bdel-r" onclick="vDel(${ri})">×</button>
+    </div>`;
+  }).join('');
+}
+
+
+window.vDel = function(i){ vData.splice(i,1); updateVStats(); renderViewer(); };
+
+function updateVStats(){
+  let cL=0, cKL=0, cHadir=0, cIjin=0, cSakit=0, cAlpha=0;
+  vData.forEach(r => {
+    const s = (r[vCols.status] || '').toString().toUpperCase().trim();
+    if(s === 'L') cL++; 
+    else if(s === 'KL') cKL++;
+    else if(s === 'HADIR') cHadir++;
+    else if(s === 'IJIN') cIjin++;
+    else if(s === 'SAKIT') cSakit++;
+    else if(s === 'ALPHA') cAlpha++;
+  });
+  document.getElementById('vL').textContent = cL;
+  document.getElementById('vKL').textContent = cKL;
+  document.getElementById('vHadir').textContent = cHadir;
+  document.getElementById('vIjin').textContent = cIjin;
+  document.getElementById('vSakit').textContent = cSakit;
+  document.getElementById('vAlpha').textContent = cAlpha;
+  document.getElementById('vTot').textContent = vData.length;
+}
+
+function loadViewer(file){
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, {type:'binary', cellDates:false});
+      const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:''});
+      if(!json.length){ alert('File kosong'); return; }
+      vCols = detectCols(Object.keys(json[0])); 
+      vData = json;
+      document.getElementById('vstats').style.display = 'grid';
+      document.getElementById('vstats2').style.display = 'grid';
+      document.getElementById('vfrow').style.display = 'flex';
+      document.getElementById('vlhdr').style.display = 'grid';
+      updateVStats(); 
+      renderViewer();
+    } catch(err){ alert('Gagal: '+err.message); }
+  };
+  r.readAsBinaryString(file);
+}
+
+document.getElementById('fileViewer').addEventListener('change', e => { if(e.target.files[0]) loadViewer(e.target.files[0]); });
+
+document.addEventListener('dragover', e => { e.preventDefault(); if(curPg===2) document.getElementById('dragov').style.display='flex'; });
+document.addEventListener('dragleave', e => { if(!e.relatedTarget) document.getElementById('dragov').style.display='none'; });
+document.addEventListener('drop', e => {
+  e.preventDefault(); 
+  document.getElementById('dragov').style.display='none';
+  const f = e.dataTransfer.files[0];
+  if(f && /\.(xlsx|xls|csv)$/i.test(f.name) && curPg === 2) loadViewer(f);
+});
+
+// ==============================
+// TENTANG - KELOLA SISWA
+// ==============================
+function renderDsSiswa(){
+  const info = document.getElementById('dsSiswaInfo');
+  const list = document.getElementById('dsSiswaList');
+  
+  if(!masterSiswa.length){ 
+    info.textContent = 'Belum ada siswa tersimpan'; 
+    list.innerHTML = ''; 
+    return; 
+  }
+  
+  info.textContent = `${masterSiswa.length} siswa tersimpan`;
+  list.innerHTML = masterSiswa.map((s, i) =>
+    `<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--brd);">
+      <span style="color:var(--mut);min-width:22px;font-size:.7rem">${i+1}</span>
+      <span>${s.nama}</span>
+      <span class="bdg bgr" style="margin-left:auto">${s.kelas || 'Umum'}</span>
+    </div>`
+  ).join('');
+}
+
+function hapusSemuaDataSiswa(){
+  if(!masterSiswa.length){ alert('Sudah kosong'); return; }
+  if(!confirm('Hapus semua data siswa? Semua Tahfidh dan absensi juga akan terhapus!')) return;
+  
+  masterSiswa = [];
+  dataTahfidh = [];
+  dataAbsensi = [];
+  
+  localStorage.setItem('db_master_siswa', JSON.stringify(masterSiswa));
+  localStorage.setItem('db_Tahfidh', JSON.stringify(dataTahfidh));
+  localStorage.setItem('db_absensi_harian', JSON.stringify(dataAbsensi));
+  
+  renderDdSiswa();
+  updateStrip();
+  renderSiswaCards();
+  updateStatsAbsensi();
+  renderTblTahfidh();
+  renderDsSiswa();
+  renderRiwAbsensi();
+  
+  document.getElementById('totTahfidh').textContent = '0';
+}
+
+// ==============================
+// KONTROL UKURAN FONT (Slider di halaman tentang)
+// ==============================
+const fontSliderAbout = document.getElementById('fontSliderAbout');
+const fontValueAbout = document.getElementById('fontValueAbout');
+const root = document.documentElement;
+
+fontSliderAbout.addEventListener('input', function() {
+  const newSize = this.value + 'px';
+  root.style.setProperty('--font-base', newSize);
+  fontValueAbout.textContent = newSize;
+});
+
+// Load saved font size if any (opsional)
+const savedFont = localStorage.getItem('tamma_font_size');
+if (savedFont) {
+  root.style.setProperty('--font-base', savedFont);
+  fontSliderAbout.value = parseInt(savedFont);
+  fontValueAbout.textContent = savedFont;
+}
+
+fontSliderAbout.addEventListener('change', function() {
+  localStorage.setItem('tamma_font_size', this.value + 'px');
+});
+
+// ==============================
+// INIT
+// ==============================
+renderDdSiswa();
+renderAyatList();
+renderTblTahfidh();
+updateStrip();
+renderSiswaCards();
+updateStatsAbsensi();
+renderRiwAbsensi();
+renderDsSiswa();
+</script>
+</body>
+</html>
