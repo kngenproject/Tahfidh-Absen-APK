@@ -1,40 +1,57 @@
-name: Build Tamma APK
+name: Build APK dari HTML
 
 on:
   push:
-    branches: [main, master]
-    paths:
-      - 'tamma/**'
-    tags:
-      - 'v*'
-  workflow_dispatch:
-    inputs:
-      build_type:
-        description: 'Build type'
-        required: true
-        default: 'debug'
-        type: choice
-        options:
-          - debug
-          - release
+    branches: [ main, master ]
+  workflow_dispatch: # bisa trigger manual dari GitHub
 
 jobs:
-  build-apk:
-    name: Build APK
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
-    defaults:
-      run:
-        working-directory: tamma
 
     steps:
+      # 1. Ambil kode dari repo
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
+      # 2. Setup Node.js
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: '18'
+
+      # 3. Setup Java (dibutuhkan Gradle)
+      - name: Setup Java JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      # 4. Setup Android SDK
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+
+      # 5. Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # 6. Sync Capacitor (copy file HTML ke android/)
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      # 7. Build APK Debug
+      - name: Build APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      # 8. Upload APK sebagai Artifact (bisa didownload)
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk          node-version: '20'
           cache: 'npm'
           cache-dependency-path: tamma/package-lock.json
 
