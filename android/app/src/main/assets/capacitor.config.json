@@ -1,0 +1,8 @@
+{
+	"appId": "com.tahfidh.absen",
+	"appName": "Tahfidh Absen",
+	"webDir": "www",
+	"server": {
+		"androidScheme": "https"
+	}
+}
