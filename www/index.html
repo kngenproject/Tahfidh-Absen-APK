@@ -2,20 +2,20 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="format-detection" content="telephone=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Tamma-Tahfidh Juz Amma</title>
 <meta name="theme-color" content="#0c4a2a">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<!-- External libs -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" crossorigin="anonymous" onerror="console.warn('[XLSX] Gagal load dari CDN')"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" crossorigin="anonymous" onerror="console.warn('[ChartJS] Gagal load dari CDN')"></script>
+<!-- Gunakan versi spesifik agar konsisten dengan cache -->
+<!-- FA replaced with inline SVG -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- URL Chart.js disamakan dengan yang di-cache -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" crossorigin="anonymous" onerror="console.warn('[Firebase] Gagal load app')"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" crossorigin="anonymous" onerror="console.warn('[Firebase] Gagal load firestore')"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <style>
 /* ==============================
    RESET & BASE (CRITICAL FIXES)
@@ -69,7 +69,7 @@ body {
   --r:12px; --rs:8px;
   --sh:0 2px 8px rgba(12,74,42,.08);
   --HDR:50px;
-  --NAV:56px;
+  --NAV:50px;
 
   /* ── Skala Tipografi Terpadu ── */
   /* xs  = label kecil, badge, caption  */
@@ -278,11 +278,11 @@ body {
   bottom: calc(var(--NAV) + env(safe-area-inset-bottom, 0px));
   left: 0;
   right: 0;
-  overflow: hidden;
+  overflow: clip;
   background: var(--bg);
   height: auto;
-  /* Izinkan swipe horizontal untuk navigasi tab */
-  touch-action: pan-y pinch-zoom;
+  /* Cegah pull-to-refresh Android bentrok dengan swipe horizontal */
+  touch-action: pan-y;
   /* Cegah text selection saat swipe di PC */
   user-select: none;
   -webkit-user-select: none;
@@ -1686,7 +1686,7 @@ input[type=search]:focus, textarea:focus { font-size: 16px; }
 }
 @media (max-width: 380px) {
   :root {
-    --HDR: 48px; --NAV: 54px;
+    --HDR: 48px; --NAV: 48px;
     --fxs: 0.68rem;
     --fsm: 0.75rem;
     --fmd: 0.82rem;
@@ -1708,7 +1708,7 @@ input[type=search]:focus, textarea:focus { font-size: 16px; }
   html { font-size: clamp(14px, 2vw, 16px); }
   :root {
     --HDR: 60px;
-    --NAV: 66px;
+    --NAV: 60px;
     --fxs: 0.72rem;
     --fsm: 0.80rem;
     --fmd: 0.88rem;
@@ -1743,7 +1743,7 @@ input[type=search]:focus, textarea:focus { font-size: 16px; }
 }
 @media (min-width: 1024px) {
   html { font-size: 16px; }
-  :root { --HDR: 65px; --NAV: 62px; }
+  :root { --HDR: 65px; --NAV: 65px; }
   .pg { padding: 20px 25px 24px; max-width: 860px; }
   .s4 { grid-template-columns: repeat(4, 1fr) !important; gap: 15px; }
   .quick-actions { grid-template-columns: repeat(4, 1fr) !important; gap: 15px; }
@@ -3286,13 +3286,8 @@ const BOOTSTRAP_ADMIN_EMAIL = null; // set ke email admin jika perlu
 firebase.initializeApp(firebaseConfig);
 const fbDb = firebase.firestore();
 
-// Deteksi apakah berjalan di WebView/APK
-const isWebView = /wv|WebView/.test(navigator.userAgent) || 
-  (window.Android !== undefined) ||
-  (/Android/.test(navigator.userAgent) && !/Chrome\/[.0-9]* Mobile/.test(navigator.userAgent));
-
-// Enable offline persistence — di WebView jangan pakai synchronizeTabs
-fbDb.enablePersistence({ synchronizeTabs: !isWebView }).catch(err => {
+// Enable offline persistence
+fbDb.enablePersistence({ synchronizeTabs: true }).catch(err => {
   if(err.code === 'failed-precondition') console.warn('[FB] Multiple tabs open');
   else if(err.code === 'unimplemented') console.warn('[FB] Browser tidak support persistence');
 });
@@ -3602,12 +3597,21 @@ async function buatKodeUndangan(){
    CDN libs (XLSX, Chart) di-cache via SW.
    HTML page juga di-cache via SW (cache-first).
 ============================== */
-// ⚠️ SERVICE WORKER: dinonaktifkan di WebView/APK (tidak didukung)
-if ('serviceWorker' in navigator && !isWebView) {
+// ⚠️ SERVICE WORKER DINONAKTIFKAN SEMENTARA UNTUK DEBUGGING
+// Unregister semua SW lama & hapus semua cache agar selalu ambil versi terbaru
+if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then(regs => {
-    regs.forEach(reg => { reg.unregister(); });
+    regs.forEach(reg => {
+      reg.unregister();
+      console.log('[SW] Unregistered:', reg.scope);
+    });
   });
-  caches.keys().then(keys => { keys.forEach(k => caches.delete(k)); });
+  caches.keys().then(keys => {
+    keys.forEach(k => {
+      caches.delete(k);
+      console.log('[Cache] Deleted:', k);
+    });
+  });
 }
 
 if (false && 'serviceWorker' in navigator) {
@@ -3853,28 +3857,30 @@ pgw.addEventListener('touchstart',e=>{
   _swipeDir=null;
 },{passive:true});
 pgw.addEventListener('touchmove',e=>{
+  if(_swipeDir) return;
   const dx=Math.abs(e.changedTouches[0].screenX-tx0);
   const dy=Math.abs(e.changedTouches[0].screenY-ty0);
-  // Tentukan arah swipe lebih awal (10px) agar tidak terlewat di WebView
-  if(!_swipeDir && (dx > 10 || dy > 10)){
-    _swipeDir = (dx > dy * 1.2) ? 'h' : 'v';
+  // Butuh minimal 20px gerakan, dan horizontal harus jelas lebih dominan dari vertikal
+  if(dx > 20 || dy > 20){
+    _swipeDir = (dx > dy * 1.5) ? 'h' : 'v';
   }
   // Lock scroll hanya saat swipe horizontal jelas
   if(_swipeDir==='h' && e.cancelable) e.preventDefault();
 },{passive:false});
 pgw.addEventListener('touchend',e=>{
+  if(window.innerWidth > 1024) return; // PC/desktop: navigasi pakai tombol nav, bukan swipe
   const dx=e.changedTouches[0].screenX-tx0;
   const dy=e.changedTouches[0].screenY-ty0;
-  // Minimal 60px horizontal (lebih mudah di APK), dan horizontal harus lebih dari 1.5x vertikal
-  if(_swipeDir!=='h' || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy)*1.5) return;
+  // Minimal 80px horizontal, dan horizontal harus lebih dari 2x vertikal
+  if(_swipeDir!=='h' || Math.abs(dx) < 80 || Math.abs(dx) < Math.abs(dy)*2) return;
   goPage(dx>0?Math.max(0,curPg-1):Math.min(5,curPg+1));
   _swipeDir=null;
 },{passive:true});
 
 (function(){
   const d=new Date();
-  const days=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
-  const mon=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+  const days=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+  const mon=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
   document.getElementById('tglHdr').textContent=`${days[d.getDay()]}, ${d.getDate()} ${mon[d.getMonth()]} ${d.getFullYear()}`;
 })();
 
@@ -4109,7 +4115,7 @@ function showSiswaHafalanHistory(nama){
     const yestKey = _localDateKey(new Date(Date.now()-86400000));
     if(k === todayKey) return '• Hari ini';
     if(k === yestKey) return '• Kemarin';
-    return '• ' + d.toLocaleDateString('id-ID',{day:'numeric',month:'short'});
+    return '• ' + d.toLocaleDateString('id-ID',{day:'numeric',month:'long'});
   })();
   panel.style.display = 'block';
   panel.innerHTML = `
@@ -4130,7 +4136,7 @@ function showSiswaHafalanHistory(nama){
       <div style="margin-top:6px; display:flex; flex-direction:column; gap:5px;">
         ${riwayat.slice(1).map(r => {
           const k = _setoranTglKey(r);
-          const d = k&&k!=='0000-00-00' ? new Date(k+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'short'}) : '';
+          const d = k&&k!=='0000-00-00' ? new Date(k+'T00:00:00').toLocaleDateString('id-ID',{day:'numeric',month:'long'}) : '';
           return `<div style="display:flex; align-items:center; gap:8px; padding:5px 8px; background:#fff; border-radius:6px; border:1px solid var(--brd);">
             <div style="flex:1; min-width:0;">
               <span style="font-weight:600; font-size:var(--fsm);">${r.surat}</span>
@@ -4367,7 +4373,7 @@ function renderRecentActivity(){
       const yestKey = _localDateKey(new Date(Date.now()-86400000));
       if(tglKey === todayKey) tglLabel = 'Hari ini';
       else if(tglKey === yestKey) tglLabel = 'Kemarin';
-      else tglLabel = d.toLocaleDateString('id-ID',{day:'numeric',month:'short'});
+      else tglLabel = d.toLocaleDateString('id-ID',{day:'numeric',month:'long'});
     }
     return `<div style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--brd);">
       <div style="width:40px; height:40px; border-radius:50%; background:var(--g1); display:flex; align-items:center; justify-content:center; font-size:var(--fxl); flex-shrink:0;">📖</div>
@@ -4466,8 +4472,8 @@ const ST = (() => {
     const labels = [], lancar = [], kl = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date(); d.setDate(d.getDate() - i);
-      const ds = d.toLocaleDateString('id-ID');
-      labels.push(d.toLocaleDateString('id-ID', { weekday:'short' }));
+      const ds = _localDateKey(d);
+      labels.push(d.toLocaleDateString('id-ID', { weekday:'long' }));
       const day = dataSetoran.filter(s => s.tgl === ds);
       lancar.push(day.filter(s => s.stat === 'L').length);
       kl.push(day.filter(s => s.stat === 'KL').length);
@@ -5309,9 +5315,13 @@ function checkAchievements(nama){
 
 // Konversi record setoran ke string tanggal YYYY-MM-DD
 function _setoranTglKey(i){
+  // Format standar YYYY-MM-DD — langsung pakai
   if(i.tgl && /^\d{4}-\d{2}-\d{2}$/.test(i.tgl)) return i.tgl;
-  if(i.tgl){ try{ const d=new Date(i.tgl); if(!isNaN(d)) return _localDateKey(d); }catch(e){} }
-  if(i.inputAt){ const d=i.inputAt.toDate?i.inputAt.toDate():new Date(i.inputAt); if(!isNaN(d)) return _localDateKey(d); }
+  // Format lama dari locale ambigu — skip, gunakan inputAt sebagai sumber terpercaya
+  if(i.inputAt){
+    const d = i.inputAt.toDate ? i.inputAt.toDate() : new Date(i.inputAt);
+    if(!isNaN(d)) return _localDateKey(d);
+  }
   return '0000-00-00';
 }
 function _setoranTglLabel(key){
@@ -6119,7 +6129,9 @@ function fmtDate(v){
   if(!v) return '';
   if(typeof v === 'number'){ 
     const d = new Date(Math.round((v-25569)*86400*1000)); 
-    return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`; 
+    const dd = String(d.getDate()).padStart(2,'0');
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    return `${dd}/${mm}/${d.getFullYear()}`; 
   }
   return v.toString();
 }
